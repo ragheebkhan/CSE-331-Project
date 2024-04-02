@@ -96,6 +96,10 @@ class Solution:
                 [0,0,0,0,0,0,0,0,0,0,0,0]]
         print(self.MaxFlow(test,0,11))
         
+        # Convert graph to adjacency matrix and set weight/capacity for each edge
+        # For each packet/customer
+        #   Run dijkstra's algorithm to find path
+        #   Update weight of each edge in path. Add 0 if there is capacity left, add 1, if not
         
         
 
