@@ -18,8 +18,6 @@ class Solution:
         but they must remain within the Solution class.
         """
         paths, bandwidths, priorities = bfs_path(graph = self.graph, isp = self.isp, list_clients=self.info["list_clients"]), {}, {}
-        print(paths)
-        print("TTTTTTTTTTTTTTT")
         # Note: You do not need to modify all of the above. For Problem 1, only the paths variable needs to be modified. If you do modify a variable you are not supposed to, you might notice different revenues outputted by the Driver locally since the autograder will ignore the variables not relevant for the problem.
         # WARNING: DO NOT MODIFY THE LINE BELOW, OR BAD THINGS WILL HAPPEN
         return (paths, bandwidths, priorities)
