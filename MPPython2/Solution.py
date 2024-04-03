@@ -5,66 +5,62 @@ from Simulator import Simulator
 import sys
 
 class Solution:
-    def bfs(self, G, s, t):
-        priors = [-1] * len(G)
-        visited = [False] * len(G)
+    class edge:
+        def __init__(self, u, v, weight):
+            self.u = u
+            self.v = v
+            self.weight = weight
+
+    def adj_list_with_weights(self):
+        """
+        Creates adjacency list with weights
+        """
+        G = [[]] * len(self.graph.keys())
+
+        for key in self.graph.keys():
+            for neighbor in self.graph[key]:
+                new_edge = self.edge(key,neighbor,0)
+                G[key].append(new_edge)
+
+        return G
+    
+    def dprime(self, w, G, R, d):
+        edges_to_w = []
+        for node in R:
+            for edge in G[node]:
+                if edge.v == w:
+                    edges_to_w.append(edge)
+        min = edges_to_w[0]
+        for edge in edges_to_w:
+            if d[edge.u]+edge.weight < d[min.u]+min.weight:
+                min = edge
+        return (min, d[min.u]+min.weight)
+
+    def dijkstra(self, G, s):
+        R = [s]
+        d = {s : 0}
         queue = deque()
         queue.append(s)
-        visited[s] = True
-        while queue:
-            node = queue.popleft()
-            for i in range(len(G[node])):
-                if visited[i] == False and G[node][i] > 0:
-                    queue.append(i)
-                    visited[i] = True
-                    priors[i] = node
-        
-        path = []
-        current = t
-        while (current != -1):
-            path.append(current)
-            current = priors[current]
-        path = path[::-1]
-        if path == [t]:
-            return None
-        return path
-    
-    def residual_graph(self, G, f):
-        Gf = [[0 for i in range(len(G))] for i in range(len(G))]
-        for idxi, i in enumerate(G):
-            for idxj, j in enumerate(i):
-                if j != 0 and f[idxi][idxj] < j:
-                    Gf[idxi][idxj] = j - f[idxi][idxj]
-                if j != 0 and f[idxi][idxj] > 0:
-                    Gf[idxj][idxi] = f[idxi][idxj]
-        return Gf
-    
+        all_neighbors = []
+        for neighbor in G[s]:
+            all_neighbors.append(neighbor)
+        while all_neighbors != []:
+            w = []
+            for neighbor in all_neighbors:
+                if neighbor.v in R:
+                    continue
+                w.append(self.dprime(neighbor.v,G,R,d))
+            w = min(w, key = lambda x: x[1])
+            R.append(w[0].v)
+            d[w[0].v] = w[1]
+            all_neighbors.clear()
+            for i in R:
+                for n in G[i]:
+                    if n.v not in R:
+                        all_neighbors.append(n)
 
-    def augment(self, f, P, G):
-        fprime = f.copy()
-        capacities = []
-        for idx, i in enumerate(P):
-            if idx+1 < len(P):
-                capacities.append(G[i][P[idx+1]]-f[i][P[idx+1]])
-        b = min(capacities)
-        for idx, i in enumerate(P):
-            if idx+1 < len(P):
-                if G[i][P[idx+1]] != 0:
-                    fprime[i][P[idx+1]] += b
-                else:
-                    fprime[P[idx+1]][i] -= b
-        return fprime
+        return d
         
-    def MaxFlow(self, G, s, t):
-        f = [[0 for i in range(len(G))] for i in range(len(G))]
-        Gf = self.residual_graph(G,f)
-        P = self.bfs(Gf,s,t)
-        while P != None:
-            f = self.augment(f,P,G)
-            Gf = self.residual_graph(G, f)
-            P = self.bfs(Gf,s,t)
-        return f
-
     def __init__(self, problem, isp, graph, info):
         self.problem = problem
         self.isp = isp
@@ -82,22 +78,21 @@ class Solution:
             for i in self.graph[key]:
                 G [key][i] = self.info["bandwidths"][key]
         """
-        test = [[0,0,0,0,0,0,0,0,0,8,8,0],
-                [0,0,7,0,7,7,0,0,0,0,7,float("inf")],
-                [0,4,0,4,4,0,0,0,0,0,0,0],
-                [0,0,1,0,0,0,1,0,1,1,0,float("inf")],
-                [0,2,2,0,0,0,0,2,0,0,0,0],
-                [0,4,0,0,0,0,4,0,4,0,0,0],
-                [0,0,0,1,0,1,0,0,0,0,0,float("inf")],
-                [0,0,0,0,1,0,0,0,0,0,0,float("inf")],
-                [0,0,0,5,0,5,0,0,0,0,0,float("inf")],
-                [1,0,0,1,0,0,0,0,0,0,0,0],
-                [7,7,0,0,0,0,0,0,0,0,0,0],
-                [0,0,0,0,0,0,0,0,0,0,0,0]]
-        print(self.MaxFlow(test,0,11))
-        
-        
-        
+        test = [[self.edge(0,9,8),self.edge(0,10,8)],
+                [self.edge(1,2,7),self.edge(1,4,7),self.edge(1,5,7),self.edge(1,10,7)],
+                [self.edge(2,1,7),self.edge(2,3,7),self.edge(2,4,7)],
+                [self.edge(3,2,1),self.edge(3,6,1),self.edge(3,8,1),self.edge(3,9,1)],
+                [self.edge(4,1,2),self.edge(4,2,2),self.edge(4,7,2)],
+                [self.edge(5,1,4),self.edge(5,6,4),self.edge(5,8,4)],
+                [self.edge(6,3,1),self.edge(6,5,1)],
+                [self.edge(7,4,1)],
+                [self.edge(8,3,4),self.edge(8,5,5)],
+                [self.edge(9,0,1),self.edge(9,3,1)],
+                [self.edge(10,0,7),self.edge(10,1,7)]]
+        for i in test:
+            for j in i:
+                j.weight = 1
+        print(self.dijkstra(test,0))
 
         paths, bandwidths, priorities = {}, {}, {}
         # Note: You do not need to modify all of the above. For Problem 1, only the paths variable needs to be modified. If you do modify a variable you are not supposed to, you might notice different revenues outputted by the Driver locally since the autograder will ignore the variables not relevant for the problem.
